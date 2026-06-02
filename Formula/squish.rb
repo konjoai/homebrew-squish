@@ -8,8 +8,8 @@ class Squish < Formula
   license "BUSL-1.1"
 
   depends_on "[email protected]"
-  depends_on :macos
   depends_on arch: :arm64
+  depends_on :macos
 
   def install
     virtualenv_create(libexec, "python3.12")
