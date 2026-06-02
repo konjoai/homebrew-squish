@@ -7,9 +7,9 @@ class Squish < Formula
   sha256 "cdcbd32949b60caf7f30a44a3a2bd67598090c28376af4c4b6b303927ef41b02"
   license "BUSL-1.1"
 
-  depends_on arch: :arm64
-  depends_on :macos
   depends_on "[email protected]"
+  depends_on :macos
+  depends_on arch: :arm64
 
   def install
     virtualenv_create(libexec, "python3.12")
