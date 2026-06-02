@@ -7,16 +7,15 @@ class Squish < Formula
   sha256 "cdcbd32949b60caf7f30a44a3a2bd67598090c28376af4c4b6b303927ef41b02"
   license "BUSL-1.1"
 
-  depends_on "[email protected]"
-  depends_on :macos
   depends_on arch: :arm64
+  depends_on :macos
+  depends_on "[email protected]"
 
   def install
-    venv = virtualenv_create(libexec, "python3.12")
+    virtualenv_create(libexec, "python3.12")
     system libexec/"bin/pip", "install", "--upgrade", "pip"
     system libexec/"bin/pip", "install", "squish-ai==#{version}"
     bin.install_symlink Dir["#{libexec}/bin/squish*"]
-    bin.install_symlink libexec/"bin/squishd"
   end
 
   test do
