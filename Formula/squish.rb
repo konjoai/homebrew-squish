@@ -13,7 +13,8 @@ class Squish < Formula
 
   def install
     py = Formula["python@3.13"].opt_bin/"python3.13"
-    virtualenv_create(libexec, py)
+    # Create venv WITH pip this time
+    system py, "-m", "venv", libexec
     system libexec/"bin/pip", "install", "--upgrade", "pip"
     system libexec/"bin/pip", "install", "squish-ai==#{version}"
     bin.install_symlink Dir["#{libexec}/bin/squish*"]
