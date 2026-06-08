@@ -106,14 +106,44 @@ class Squish < Formula
     sha256 "758cfddf1180053b7613db76fad3d246a331a2a905808e1164a275621fc983b8"
   end
 
+  resource "mlx_metal" do
+    url "https://files.pythonhosted.org/packages/99/82/11fd62a8d7a3e96e5c43220b17de0151e3f10101f8bb3b865f5bd9cdd074/mlx_metal-0.31.2-py3-none-macosx_26_0_arm64.whl"
+    sha256 "84ffb60ee503f03eb684f5fb168d5cff31e2a16b7f27c1731eaf7662bd6e9b46"
+  end
+
+  resource "jinja2" do
+    url "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl"
+    sha256 "85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67"
+  end
+
+  resource "markupsafe" do
+    url "https://files.pythonhosted.org/packages/9c/d9/5f7756922cdd676869eca1c4e3c0cd0df60ed30199ffd775e319089cb3ed/markupsafe-3.0.3-cp313-cp313-macosx_11_0_arm64.whl"
+    sha256 "116bb52f642a37c115f517494ea5feb03889e04df47eeff5b130b1808ce7c219"
+  end
+
+  resource "protobuf" do
+    url "https://files.pythonhosted.org/packages/b8/ef/50433d346c56657a70d27f156c7b349ac59a068b01de4eb796e747eecc43/protobuf-7.35.0-py3-none-any.whl"
+    sha256 "c13f325cf242bad135c350629eeb5d54b24228eb472fb3e2e9ebbd4c5dc20ca0"
+  end
+
+  resource "sentencepiece" do
+    url "https://files.pythonhosted.org/packages/8d/de/5a007fb53b1ab0aafc69d11a5a3dd72a289d5a3e78dcf2c3a3d9b14ffe93/sentencepiece-0.2.1-cp313-cp313-macosx_11_0_arm64.whl"
+    sha256 "097f3394e99456e9e4efba1737c3749d7e23563dd1588ce71a3d007f25475fff"
+  end
+
+  resource "squish_ai" do
+    url "https://files.pythonhosted.org/packages/16/90/d77923c7de9d8a042a42b0a4f75eade9a9482c448b5f96468a1c40217e7f/squish_ai-9.33.6-py3-none-any.whl"
+    sha256 "40d3232628badf3c538f89bd25bbf92af197dbe1501565ef5c959d4406f506e5"
+  end
+
   resource "numpy" do
     url "https://files.pythonhosted.org/packages/97/12/70b5d0d7c15e1ebb8a6a84a8caa1d19e181d84fb58bb6d70aca29099dec1/numpy-2.4.6-cp313-cp313-macosx_14_0_arm64.whl"
     sha256 "043191bfa8eab18c776647b62723ac9dddece59743b13f49b2016094129c2b3f"
   end
 
   resource "orjson" do
-    url "https://files.pythonhosted.org/packages/bc/f7/7118f965541aeac6844fcb18d6988e111ac0d349c9b80cda53583e758908/orjson-3.10.18-cp313-cp313-macosx_15_0_arm64.whl"
-    sha256 "1ebeda919725f9dbdb269f59bc94f861afbe2a27dce5608cdba2d92772364d1c"
+    url "https://files.pythonhosted.org/packages/32/33/93fcc25907235c344ae73122f8a4e01d2d393ef062b4af7d2e2487a32c37/orjson-3.11.9-cp313-cp313-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl"
+    sha256 "4bab1b2d6141fe7b32ae71dac905666ece4f94936efbfb13d55bb7739a3a6021"
   end
 
   resource "packaging" do
@@ -212,7 +242,35 @@ class Squish < Formula
   end
 
   def install
-    virtualenv_install_with_resources
+    # Isolated venv (NOT --system-site-packages) so the mlx wheel uses its
+    # own bundled libmlx.dylib via mlx-metal, not the stale standalone
+    # Homebrew mlx formula (0.31.1) that otherwise leaks in and causes a
+    # dlopen symbol mismatch against the 0.31.2 wheel.
+    venv_python = Formula["python@3.13"].opt_bin/"python3.13"
+    system venv_python, "-m", "venv", libexec
+    system libexec/"bin/python", "-m", "ensurepip", "--upgrade"
+
+    # Copy all dependency wheels into buildpath (/tmp, sandbox-safe) with
+    # the Homebrew hash prefix stripped to valid PEP 427 filenames.
+    wheel_dir = buildpath/"wheels"
+    wheel_dir.mkpath
+    resources.each do |r|
+      whl_name = r.cached_download.basename.to_s.sub(/\A[0-9a-f]{64}--/, "")
+      cp r.cached_download, wheel_dir/whl_name
+    end
+
+    # Install squish-ai plus every dependency from the local wheel dir in
+    # one offline pass. squish-ai ships a pure-Python wheel (added as the
+    # squish_ai resource), so there is no source build and no need for
+    # setuptools offline.
+    system libexec/"bin/python", "-m", "pip", "install",
+           "--no-index", "--find-links=#{wheel_dir}",
+           "squish-ai"
+
+    bin.install_symlink libexec/"bin/squish"
+    bin.install_symlink libexec/"bin/squish-server"
+    bin.install_symlink libexec/"bin/squish-convert"
+    bin.install_symlink libexec/"bin/squishd"
   end
 
   test do
