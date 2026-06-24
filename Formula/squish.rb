@@ -11,7 +11,7 @@ class Squish < Formula
   depends_on arch: :arm64
   depends_on :macos => :ventura
 
-  # Resource blocks valid for squish-ai 9.33.5, Python 3.13, macOS arm64.
+  # Resource blocks valid for squish-ai 9.34.5, Python 3.13, macOS arm64.
   # Regenerate after version bumps that change dependencies:
   #   pip install squish-ai homebrew-pypi-poet && poet squish-ai
   # mlx/mlx-lm have no sdist — arm64 wheels sourced manually from PyPI.
@@ -132,8 +132,8 @@ class Squish < Formula
   end
 
   resource "squish_ai" do
-    url "https://files.pythonhosted.org/packages/58/ff/6a0a50e17a3daf1003d6a9e97e1e8ede8563d67eabdd06bac73a8b9a712b/squish_ai-9.33.7-py3-none-any.whl"
-    sha256 "e44dbe12d0802792a5dac8ab54e2a6df4d6f01f7665e7ad3b6d8af564e7a7cb7"
+    url "https://files.pythonhosted.org/packages/d6/07/c658fa352c8afece43977b46c34394d24e8c725614db573037bfdc7f786a/squish_ai-9.34.5-py3-none-any.whl"
+    sha256 "d42ee9afec485ee1fd3d92900ad0995290ab0afcc72b561493d64069955d3eec"
   end
 
   resource "numpy" do
